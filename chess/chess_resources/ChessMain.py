@@ -20,10 +20,11 @@ def load_images():
 # Helping Methods
 def drawBoard(screen):
     # Only drawing the dark squares as the light color is the background
+    colors = ["#E7E8E4", "#33684B"]
     for row in range(dimension):
         for col in range(dimension):
-            if (row + col) % 2:
-                p.draw.rect(screen, p.Color("#33684B"), p.Rect(col * sq_size, row * sq_size, sq_size, sq_size))
+            color = colors[(row + col) % 2]
+            p.draw.rect(screen, p.Color(color), p.Rect(col * sq_size, row * sq_size, sq_size, sq_size))
 
 
 def drawPieces(screen, _board: np.array([])):
@@ -51,10 +52,31 @@ def main():
     screen.fill(p.Color("#E7E8E4"))
     load_images()  # only do this once
     running = True
+    sqSelected = ()  # no sq selected initially, keep track of the last click of the user tuple (row, col)
+    playerClicks = []  # keep track of player clicks (two tuples: (6, 4), (4, 4))
+
     while running:
         for e in p.event.get():
             if e.type == p.QUIT:
                 running = False
+            elif e.type == p.MOUSEBUTTONDOWN:
+                location = p.mouse.get_pos()  # (x, y) location of mouse
+                col = location[0]//sq_size
+                row = location[1]//sq_size
+                if sqSelected == (row, col):  # user clicked the same sq twice
+                    # Assumption this is undo
+                    sqSelected = ()
+                    playerClicks = []
+                else:
+                    sqSelected = (row, col)
+                    playerClicks.append(sqSelected)  # append for both 1st and 2nd click
+                if len(playerClicks) == 2:  # after 2nd click
+                    move = ChessEngine.Move(playerClicks[0], playerClicks[1], gs.board)
+                    # print(move.getChessNotation())
+                    gs.makeMove(move)
+                    # print(gs.board)
+                    sqSelected = ()
+                    playerClicks = []
 
         drawGameState(screen, gs)
         clock.tick(max_FPS)
