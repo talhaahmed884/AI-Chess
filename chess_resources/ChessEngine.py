@@ -2,6 +2,7 @@
 # responsible for determining the valid moves at the current state, it will also keep a move log
 
 from chess_resources.Classes.Bishop import Bishop
+from chess_resources.Classes.Dimension import Dimension
 from chess_resources.Classes.King import King
 from chess_resources.Classes.Knight import Knight
 from chess_resources.Classes.Pawn import Pawn
@@ -43,7 +44,6 @@ class GameState:
                     not self.whiteToMove and self.board[move.startSQ[0]][move.startSQ[1]].identity[0] == 'w'):
                 return
             else:
-
                 if self.board[move.startSQ[0]][move.startSQ[1]].checkMove(move.targetSQ[0], move.targetSQ[1],
                                                                           self.board):
                     self.board[move.startSQ[0]][move.startSQ[1]] = None
@@ -52,3 +52,29 @@ class GameState:
                     self.board[move.targetSQ[0]][move.targetSQ[1]].col = move.targetSQ[1]
                     self.moveLog.append(move)
                     self.whiteToMove = not self.whiteToMove
+
+    def undoMove(self):
+        if self.moveLog:
+            move = self.moveLog.pop()
+            self.board[move.startSQ[0]][move.startSQ[1]] = move.pieceMoved
+            self.board[move.targetSQ[0]][move.targetSQ[1]] = move.pieceCaptured
+
+            self.board[move.startSQ[0]][move.startSQ[1]].row = move.startSQ[0]
+            self.board[move.startSQ[0]][move.startSQ[1]].col = move.startSQ[1]
+
+            self.whiteToMove = not self.whiteToMove
+
+    def possibleMoves(self, currPos: tuple):
+        if self.board[currPos[0]][currPos[1]] is not None:
+            if (self.whiteToMove and self.board[currPos[0]][currPos[1]].identity[0] == 'b') or (
+                    not self.whiteToMove and self.board[currPos[0]][currPos[1]].identity[0] == 'w'):
+                return
+            else:
+                possibleMovesList = []
+                for a in range(Dimension.maxRow + 1):
+                    for b in range(Dimension.maxCol + 1):
+                        if self.board[currPos[0]][currPos[1]].checkMove(a, b, self.board):
+                            possibleMovesList.append((a, b))
+
+                return possibleMovesList
+

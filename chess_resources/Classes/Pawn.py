@@ -30,7 +30,7 @@ class Pawn(Piece, ABC):
     def _blackPawnMove(self, rowArg: int, colArg: int, board: list) -> bool:
         if board[rowArg][colArg] is None:
             if rowArg - self.row == 2 and self.row == 1 and colArg == self.col:
-                return True
+                return self._checkRow(self.row, rowArg, 1, board)
             elif rowArg - self.row == 1 and colArg == self.col:
                 return True
             else:
@@ -46,7 +46,7 @@ class Pawn(Piece, ABC):
     def _whitePawnMove(self, rowArg: int, colArg: int, board: list) -> bool:
         if board[rowArg][colArg] is None:
             if self.row - rowArg == 2 and self.row == 6 and colArg == self.col:
-                return True
+                return self._checkRow(self.row, rowArg, -1, board)
             elif self.row - rowArg == 1 and colArg == self.col:
                 return True
             else:
@@ -58,3 +58,16 @@ class Pawn(Piece, ABC):
                 return False
         else:
             return False
+
+    def _checkRow(self, row: int, rowArg: int, increment: int, board) -> bool:
+        start = 0
+        if increment > 0:
+            start = row + 1
+        elif increment < 0:
+            start = row - 1
+
+        for a in range(start, rowArg, increment):
+            if board[a][self.col] is not None:
+                return False
+        return True
+
