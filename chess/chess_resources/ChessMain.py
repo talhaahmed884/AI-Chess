@@ -18,12 +18,14 @@ def load_images():
 
 
 # Helping Methods
-def drawBoard(screen):
+def drawBoard(screen, selected_pos: tuple):
     # Only drawing the dark squares as the light color is the background
     colors = ["#E7E8E4", "#33684B"]
     for row in range(dimension):
         for col in range(dimension):
             color = colors[(row + col) % 2]
+            if selected_pos and (row, col) == selected_pos:
+                color = "#FF6E5E"
             p.draw.rect(screen, p.Color(color), p.Rect(col * sq_size, row * sq_size, sq_size, sq_size))
 
 
@@ -37,9 +39,8 @@ def drawPieces(screen, _board: np.array([])):
 
 
 # Responsible for all the graphics within a current game state.
-def drawGameState(screen, gs: ChessEngine.GameState()):
-    drawBoard(screen)  # draw squares on the board
-    # add in piece highlighting or move suggestions (later)
+def drawGameState(screen, gs: ChessEngine.GameState(), selected_pos=None):
+    drawBoard(screen, selected_pos)  # draw squares on the board
     drawPieces(screen, gs.board)  # draw pieces on top of those squares
 
 
@@ -59,10 +60,11 @@ def main():
         for e in p.event.get():
             if e.type == p.QUIT:
                 running = False
+            # Mouse Click
             elif e.type == p.MOUSEBUTTONDOWN:
                 location = p.mouse.get_pos()  # (x, y) location of mouse
-                col = location[0]//sq_size
-                row = location[1]//sq_size
+                col = location[0] // sq_size
+                row = location[1] // sq_size
                 if sqSelected == (row, col):  # user clicked the same sq twice
                     # Assumption this is undo
                     sqSelected = ()
@@ -70,6 +72,7 @@ def main():
                 else:
                     sqSelected = (row, col)
                     playerClicks.append(sqSelected)  # append for both 1st and 2nd click
+
                 if len(playerClicks) == 2:  # after 2nd click
                     move = ChessEngine.Move(playerClicks[0], playerClicks[1], gs.board)
                     # print(move.getChessNotation())
@@ -77,11 +80,26 @@ def main():
                     # print(gs.board)
                     sqSelected = ()
                     playerClicks = []
+            # Keyboard Press
+            elif e.type == p.KEYDOWN:
+                if e.key == p.K_z:
+                    gs.undoMove()
 
-        drawGameState(screen, gs)
+        if len(playerClicks) == 1:
+            drawGameState(screen, gs, sqSelected)
+        else:
+            drawGameState(screen, gs)
+
         clock.tick(max_FPS)
         p.display.flip()
 
 
 if __name__ == "__main__":
     main()
+
+'''
+max_range = 4
+for i in range(0-4): // meaning 0, 1, 2, 3, 4
+    arrayYouNeed[max_range - i]
+    print(max_range - i) -> Your Output will be 4, 3, 2, 1, 0 GEDIT?????????
+'''

@@ -16,7 +16,7 @@ class Move:
     def __init__(self, start: tuple(), target: tuple(), board: np.array([])):
         self.startSQ = start
         self.targetSQ = target
-        # print("start Row: ", self.startSQ[0], " start Col: ", self.startSQ[1])
+        print("start Row: ", self.startSQ[0], " start Col: ", self.startSQ[1])
         self.pieceMoved = board[self.startSQ[0]][self.startSQ[1]]
         self.pieceCaptured = board[self.targetSQ[0]][self.targetSQ[1]]
 
@@ -46,3 +46,10 @@ class GameState:
         self.board[move.targetSQ[0]][move.targetSQ[1]] = move.pieceMoved
         self.moveLog.append(move)
         self.whiteToMove = not self.whiteToMove
+
+    def undoMove(self):
+        if self.moveLog:
+            move = self.moveLog.pop()
+            self.board[move.startSQ[0]][move.startSQ[1]] = move.pieceMoved
+            self.board[move.targetSQ[0]][move.targetSQ[1]] = move.pieceCaptured
+            self.whiteToMove = not self.whiteToMove
