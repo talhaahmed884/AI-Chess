@@ -1,16 +1,16 @@
 from abc import ABC
 
-from Board import Dimension, Board
+from Dimension import Dimension
 from Piece import Piece
 
 
 class Rook(Piece, ABC):
-    def __init__(self, row, col, color):
+    def __init__(self, row: int, col: int, color: str):
         self.row = row
         self.col = col
         self.color = color
 
-    def checkMove(self, rowArg: int, colArg: int, board: Board) -> bool:
+    def checkMove(self, rowArg: int, colArg: int, board) -> bool:
         if Dimension.maxRow >= rowArg > self.row and colArg == self.col:
             if self._checkRow(self.row, rowArg, 1, board):
                 return self.movePiece(rowArg, colArg, board)
@@ -34,7 +34,7 @@ class Rook(Piece, ABC):
         else:
             return False
 
-    def movePiece(self, rowArg: int, colArg: int, board: Board) -> bool:
+    def movePiece(self, rowArg: int, colArg: int, board) -> bool:
         if board.pieces[rowArg][colArg] is None:
             return True
         else:
@@ -45,7 +45,7 @@ class Rook(Piece, ABC):
             else:
                 return False
 
-    def _checkRow(self, row: int, rowArg: int, increment: int, board: Board) -> bool:
+    def _checkRow(self, row: int, rowArg: int, increment: int, board) -> bool:
         if increment > 0:
             start = row + 1
         elif increment < 0:
@@ -56,7 +56,7 @@ class Rook(Piece, ABC):
                 return False
         return True
 
-    def _checkCol(self, col: int, colArg: int, increment: int, board: Board) -> bool:
+    def _checkCol(self, col: int, colArg: int, increment: int, board) -> bool:
         if increment > 0:
             start = col + 1
         elif increment < 0:

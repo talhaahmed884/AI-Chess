@@ -1,17 +1,17 @@
 from abc import ABC, abstractmethod
 
-from Board import Board, Dimension
-from Piece import Piece, Color
+from Dimension import Dimension
+from Piece import Piece
 
 
 class Bishop(Piece, ABC):
-    def __init__(self, row: int, col: int, color: Color):
+    def __init__(self, row: int, col: int, color: str):
         self.row = row
         self.col = col
         self.color = color
 
     @abstractmethod
-    def checkMove(self, rowArg: int, colArg: int, board: Board) -> bool:
+    def checkMove(self, rowArg: int, colArg: int, board) -> bool:
         if Dimension.maxRow >= rowArg >= Dimension.minRow and Dimension.maxCol >= colArg >= Dimension.minCol:
             if rowArg > self.row:
                 if colArg > self.col:
@@ -38,7 +38,7 @@ class Bishop(Piece, ABC):
 
         return self.movePiece(rowArg, colArg, board)
 
-    def movePiece(self, rowArg: int, colArg: int, board: Board) -> bool:
+    def movePiece(self, rowArg: int, colArg: int, board) -> bool:
         if board.pieces[rowArg][colArg] is None:
             return True
         elif board.pieces[rowArg][colArg].color == self.color:
@@ -48,7 +48,7 @@ class Bishop(Piece, ABC):
         else:
             return False
 
-    def _checkLowerRightDiagonal(self, rowArg: int, colArg: int, board: Board) -> bool:
+    def _checkLowerRightDiagonal(self, rowArg: int, colArg: int, board) -> bool:
         for currRow, currCol in zip(range(self.row, rowArg + 1), range(self.col, colArg + 1)):
             if (currRow == rowArg and currCol != colArg) or (currRow != rowArg and currCol == colArg):
                 return False
@@ -56,23 +56,23 @@ class Bishop(Piece, ABC):
                 return False
         return True
 
-    def _checkUpperLeftDiagonal(self, rowArg: int, colArg: int, board: Board) -> bool:
+    def _checkUpperLeftDiagonal(self, rowArg: int, colArg: int, board) -> bool:
         for currRow, currCol in zip(range(self.row - 1, rowArg - 1, -1), range(self.col - 1, colArg - 1, -1)):
             if (currRow == rowArg and currCol != colArg) and (currRow != rowArg and currCol == colArg):
                 return False
-            if (currRow != rowArg and currCol == colArg) and (currRow == rowArg and currCol != colArg):
+            if board.pieces[currRow][currCol] is not None:
                 return False
         return True
 
-    def _checkUpperRightDiagonal(self, rowArg: int, colArg: int, board: Board) -> bool:
+    def _checkUpperRightDiagonal(self, rowArg: int, colArg: int, board) -> bool:
         for currRow, currCol in zip(range(self.row - 1, rowArg - 1, -1), range(self.col + 1, colArg + 1)):
             if (currRow == rowArg and currCol != colArg) and (currRow != rowArg and currCol == colArg):
                 return False
-            if (currRow != rowArg and currCol == colArg) and (currRow == rowArg and currCol != colArg):
+            if board.pieces[currRow][currCol] is not None:
                 return False
         return True
 
-    def _checkLowerLeftDiagonal(self, rowArg: int, colArg: int, board: Board) -> bool:
+    def _checkLowerLeftDiagonal(self, rowArg: int, colArg: int, board) -> bool:
         for currRow, currCol in zip(range(self.row + 1, rowArg + 1), range(self.col - 1, colArg - 1, -1)):
             if (currRow == rowArg and currCol != colArg) or (currRow != rowArg and currCol == colArg):
                 return False

@@ -1,16 +1,16 @@
 from abc import ABC
 
-from Board import Board, Dimension
-from Piece import Piece, Color
+from Dimension import Dimension
+from Piece import Piece
 
 
 class King(Piece, ABC):
-    def __init__(self, row: int, col: int, color: Color):
+    def __init__(self, row: int, col: int, color: str):
         self.row = row
         self.col = col
         self.color = color
 
-    def checkMove(self, rowArg: int, colArg: int, board: Board) -> bool:
+    def checkMove(self, rowArg: int, colArg: int, board) -> bool:
         if Dimension.maxRow >= rowArg >= Dimension.minRow and Dimension.maxCol >= colArg >= Dimension.minCol:
             if (abs(self.row - rowArg) == 1 and self.col == colArg) or \
                     (abs(self.col - colArg) == 1 and self.row == rowArg):
@@ -20,7 +20,7 @@ class King(Piece, ABC):
         else:
             return False
 
-    def movePiece(self, rowArg: int, colArg: int, board: Board) -> bool:
+    def movePiece(self, rowArg: int, colArg: int, board) -> bool:
         if board.pieces[rowArg][colArg] is None:
             return True
         elif board.pieces[rowArg][colArg].color != self.color:
