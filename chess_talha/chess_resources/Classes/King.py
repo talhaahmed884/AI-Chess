@@ -34,18 +34,22 @@ class King(Piece, ABC):
     def isCheck(self, board: list) -> bool:
         for a in range(0, Dimension.maxRow + 1):
             for b in range(0, Dimension.maxCol + 1):
-                if self.findCheck(a, b, board):
-                    return True
+                if board[a][b] is not None:
+                    if board[a][b].identity[0] != self.identity[0]:
+                        if board[a][b].checkMove(self.row, self.col, board):
+                            # self.isUnderCheck = True
+                            # print('KING UNDER CHECK')
+                            return True
 
         return False
 
-    def findCheck(self, rowArg: int, colArg: int, board: list) -> bool:
-        if board[rowArg][colArg] is not None:
-            if board[rowArg][colArg].identity[0] != self.identity[0]:
-                if board[rowArg][colArg].checkMove(self.row, self.col, board):
-                    self.isUnderCheck = True
-                    print('KING UNDER CHECK')
-                    return True
-
-        return False
+    # def _findCheck(self, rowArg: int, colArg: int, board: list) -> bool:
+    #     if board[rowArg][colArg] is not None:
+    #         if board[rowArg][colArg].identity[0] != self.identity[0]:
+    #             if board[rowArg][colArg].checkMove(self.row, self.col, board):
+    #                 # self.isUnderCheck = True
+    #                 print('KING UNDER CHECK')
+    #                 return True
+    #
+    #     return False
 
