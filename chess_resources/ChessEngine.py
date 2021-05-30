@@ -1,5 +1,6 @@
 # Responsible for storing all the information for storing the current game state of the game. It will also be
 # responsible for determining the valid moves at the current state, it will also keep a move log
+import copy
 
 from chess_resources.Classes.Bishop import Bishop
 from chess_resources.Classes.Dimension import Dimension
@@ -78,3 +79,37 @@ class GameState:
 
                 return possibleMovesList
 
+    def _getKingPosition(self) -> (King, King):
+        wKing = bKing = None
+
+        for a in range(0, Dimension.maxRow + 1):
+            for b in range(0, Dimension.maxCol + 1):
+                if isinstance(self.board[a][b], King):
+                    if self.board[a][b].identity[0] == 'w':
+                        wKing = self.board[a][b]
+                    elif self.board[a][b].identity[0] == 'b':
+                        bKing = self.board[a][b]
+
+        return wKing, bKing
+
+    def getPinning_AttackingMoves(self):
+        pass
+
+    def isAttackingMove(self, color: str, targetSquare: tuple):
+        pass
+
+    def isPinningMove(self, color: str, targetSquare: tuple):
+        for a in range(0, Dimension.maxRow + 1):
+            for b in range(0, Dimension.maxCol + 1):
+                if self.board[a][b] is not None:
+                    if self.board[a][b].identity[0] == color:
+                        pass
+
+
+##
+# for all the check side pieces
+#   get Current position of the piece
+#   if current position blocks check in next move
+#       append to pinning
+#   elif isAttackingMove return's true then
+#       append to pinning
