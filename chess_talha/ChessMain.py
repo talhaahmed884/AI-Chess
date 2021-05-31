@@ -43,6 +43,13 @@ def drawPieces(screen, _board: list):
                 screen.blit(images[piece.identity], p.Rect(col * sq_size, row * sq_size, sq_size, sq_size))
 
 
+def drawText(screen, text: str):
+    font = p.font.SysFont("Sans-serif", 75, True, False)
+    textObject = font.render(text, 0, p.Color('#404040'))
+    textLocation = p.Rect(0, 0, width, height).move(width/2 - textObject.get_width()/2, height/2 - textObject.get_height()/2)
+    screen.blit(textObject, textLocation)
+
+
 # Responsible for all the graphics within a current game state.
 def drawGameState(screen, gs: ChessEngine.GameState(), selected_pos=None, allMoves=None):
     drawBoard(screen, selected_pos, allMoves)  # draw squares on the board
@@ -61,6 +68,7 @@ def main():
     running = True
     sqSelected = ()  # no sq selected initially, keep track of the last click of the user tuple (row, col)
     playerClicks = []  # keep track of player clicks (two tuples: (6, 4), (4, 4))
+    _checkmate = False
 
     while running:
         for e in p.event.get():
@@ -80,6 +88,9 @@ def main():
                 if len(playerClicks) == 2:  # after 2nd click
                     move = ChessEngine.Move(playerClicks[0], playerClicks[1], gs.board)
                     gs.makeMove(move)
+                    if gs.isCheckMate():
+                        drawText(screen, 'CHECKMATE')
+                        _checkmate = True
                     sqSelected = ()
                     playerClicks = []
             # Keyboard Press
@@ -90,10 +101,12 @@ def main():
         if len(playerClicks) == 1:
             if gs.board[sqSelected[0]][sqSelected[1]] is not None:
                 highlightMoves = gs.possibleMoves(sqSelected)
-                drawGameState(screen, gs, sqSelected, highlightMoves)
+                if not _checkmate:
+                    drawGameState(screen, gs, sqSelected, highlightMoves)
 
         else:
-            drawGameState(screen, gs)
+            if not _checkmate:
+                drawGameState(screen, gs)
 
         clock.tick(max_FPS)
         p.display.flip()

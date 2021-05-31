@@ -61,11 +61,16 @@ class GameState:
     moveLog = []
 
     def makeMove(self, move: Move):
-        if self.board[move.startSQ[0]][move.startSQ[1]].checkMove(move.targetSQ[0], move.targetSQ[1],
-                                                                  self.board):
-            _movement(move, self.board)
-            self.moveLog.append(move)
-            self.whiteToMove = not self.whiteToMove
+        if self.board[move.startSQ[0]][move.startSQ[1]] is not None:
+            if self.board[move.startSQ[0]][move.startSQ[1]] is not None:
+                if (self.whiteToMove and self.board[move.startSQ[0]][move.startSQ[1]].identity[0] == 'b') or (
+                        not self.whiteToMove and self.board[move.startSQ[0]][move.startSQ[1]].identity[0] == 'w'):
+                    return
+            if self.board[move.startSQ[0]][move.startSQ[1]].checkMove(move.targetSQ[0], move.targetSQ[1],
+                                                                      self.board):
+                _movement(move, self.board)
+                self.moveLog.append(move)
+                self.whiteToMove = not self.whiteToMove
 
     def undoMove(self):
         if self.moveLog:
@@ -96,11 +101,15 @@ class GameState:
 
         return possibleMovesList
 
-    def getPinningMoves(self, wKing, bKing, currPos: tuple):
+    def getPinningMoves(self, wKing, bKing, currPos: tuple) -> list:
         if wKing.isCheck(self.board):
             identity = 'w'
+            # if self.isCheckMate(wKing):
+            #     return []
         elif bKing.isCheck(self.board):
             identity = 'b'
+            # if self.isCheckMate(bKing):
+            #     return []
         else:
             if self.whiteToMove and self.board[currPos[0]][currPos[1]].identity[0] == 'w':
                 identity = 'w'
@@ -118,10 +127,35 @@ class GameState:
                     _movement(Move((currPos[0], currPos[1]), (c[0], c[1]), newBoard), newBoard)
                     twKing, tbKing = _getKingPosition(newBoard)
                     if identity == 'w' and not twKing.isCheck(newBoard):
-                        print(c)
                         pinningMoves.append(c)
                     elif identity == 'b' and not tbKing.isCheck(newBoard):
-                        print(c)
                         pinningMoves.append(c)
 
         return pinningMoves
+
+    def isCheckMate(self) -> bool:
+        wKing, bKing = _getKingPosition(self.board)
+        tKing = None
+
+        if wKing.isCheck(self.board):
+            tKing = wKing
+        elif bKing.isCheck(self.board):
+            tKing = bKing
+
+        if tKing is not None:
+            for a in range(0, Dimension.maxRow + 1):
+                for b in range(0, Dimension.maxCol + 1):
+                    if self.board[a][b] is not None:
+                        if self.board[a][b].identity[0] == tKing.identity[0]:
+                            possibleBlockingMoves = self._getAllPossibleMoves((a, b))
+
+                            for c in possibleBlockingMoves:
+                                newBoard = copy.deepcopy(self.board)
+                                _movement(Move((a, b), (c[0], c[1]), newBoard), newBoard)
+
+                                if not tKing.isCheck(newBoard):
+                                    return False
+
+            print('CHECKMATE HAS OCCURRED')
+            return True
+
