@@ -41,6 +41,25 @@ def _getKingPosition(board: list) -> (King, King):
     return wKing, bKing
 
 
+def _disableKingCastling(identity: str, board: list):
+    for a in range(Dimension.maxRow + 1):
+        for b in range(Dimension.maxCol + 1):
+            if isinstance(board[a][b], King):
+                if board[a][b].identity[0] == identity:
+                    if board[a][b].canCastle:
+                        board[a][b].disableCastling()
+                    return
+
+
+def _disableRookCastling(identity: str, board: list):
+    for a in range(Dimension.maxRow + 1):
+        for b in range(Dimension.maxCol + 1):
+            if isinstance(board[a][b], Rook):
+                if board[a][b].identity[0] == identity:
+                    if board[a][b].canCastle:
+                        board[a][b].disableCastling()
+
+
 class GameState:
     board = [
         [Rook(0, 0, 'bR'), Knight(0, 1, 'bN'), Bishop(0, 2, 'bB'), Queen(0, 3, 'bQ'), King(0, 4, 'bK'),
@@ -71,6 +90,13 @@ class GameState:
                 _movement(move, self.board)
                 self.moveLog.append(move)
                 self.whiteToMove = not self.whiteToMove
+                # if isinstance(self.board[move.targetSQ[0]][move.targetSQ[1]], King) or \
+                #         isinstance(self.board[move.targetSQ[0]][move.targetSQ[1]], Rook):
+                #     self.checkCastling(self.board[move.targetSQ[0]][move.targetSQ[1]].identity[0])
+
+    def checkCastling(self, identity: str):
+        _disableKingCastling(identity, self.board)
+        _disableRookCastling(identity, self.board)
 
     def undoMove(self):
         if self.moveLog:
@@ -83,14 +109,16 @@ class GameState:
 
             self.whiteToMove = not self.whiteToMove
 
-    def possibleMoves(self, currPos: tuple):
+    def possibleMoves(self, currPos: tuple) -> list:
         if self.board[currPos[0]][currPos[1]] is not None:
             if (self.whiteToMove and self.board[currPos[0]][currPos[1]].identity[0] == 'b') or (
                     not self.whiteToMove and self.board[currPos[0]][currPos[1]].identity[0] == 'w'):
-                return
+                return []
             else:
                 wKing, bKing = _getKingPosition(self.board)
                 return self.getPinningMoves(wKing, bKing, currPos)
+        else:
+            return []
 
     def _getAllPossibleMoves(self, currPos: tuple) -> list:
         possibleMovesList = []
@@ -104,12 +132,8 @@ class GameState:
     def getPinningMoves(self, wKing, bKing, currPos: tuple) -> list:
         if wKing.isCheck(self.board):
             identity = 'w'
-            # if self.isCheckMate(wKing):
-            #     return []
         elif bKing.isCheck(self.board):
             identity = 'b'
-            # if self.isCheckMate(bKing):
-            #     return []
         else:
             if self.whiteToMove and self.board[currPos[0]][currPos[1]].identity[0] == 'w':
                 identity = 'w'
@@ -143,19 +167,30 @@ class GameState:
             tKing = bKing
 
         if tKing is not None:
+            print(tKing.identity)
+
+        if tKing is not None:
             for a in range(0, Dimension.maxRow + 1):
                 for b in range(0, Dimension.maxCol + 1):
                     if self.board[a][b] is not None:
                         if self.board[a][b].identity[0] == tKing.identity[0]:
                             possibleBlockingMoves = self._getAllPossibleMoves((a, b))
 
-                            for c in possibleBlockingMoves:
-                                newBoard = copy.deepcopy(self.board)
-                                _movement(Move((a, b), (c[0], c[1]), newBoard), newBoard)
+                            if self.board[a][b].identity == tKing.identity:
+                                for c in possibleBlockingMoves:
+                                    newBoard = copy.deepcopy(self.board)
+                                    _movement(Move((a, b), (c[0], c[1]), newBoard), newBoard)
+                                    nKing = King(c[0], c[1], tKing.identity)
 
-                                if not tKing.isCheck(newBoard):
-                                    return False
+                                    if not nKing.isCheck(newBoard):
+                                        return False
+                            else:
+                                for c in possibleBlockingMoves:
+                                    newBoard = copy.deepcopy(self.board)
+                                    _movement(Move((a, b), (c[0], c[1]), newBoard), newBoard)
+
+                                    if not tKing.isCheck(newBoard):
+                                        return False
 
             print('CHECKMATE HAS OCCURRED')
             return True
-

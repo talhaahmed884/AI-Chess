@@ -1,5 +1,4 @@
 # The driver file, responsible for handling the user input and the current GameState object
-import random
 
 import pygame as p
 
@@ -110,9 +109,8 @@ def main():
                         playerClicks = []
             # Keyboard Press
             elif e.type == p.KEYDOWN:
-                if humanTurn:
-                    if e.key == p.K_z:
-                        gs.undoMove()
+                if e.key == p.K_z:
+                    gs.undoMove()
 
         if not gameOver and not humanTurn:
             bot_Move = findRandomMove(gs.getAllPossibleMovesOfASide())

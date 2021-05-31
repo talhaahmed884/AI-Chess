@@ -1,5 +1,4 @@
 import random
-from chess_resources import ChessEngine
 
 scores_dict = {"Q": 9, "R": 5, "B": 3, "N": 3, "P": 1, "K": 0}
 checkmate = 1000
@@ -12,6 +11,7 @@ def findRandomMove(validMoves):
     for v in validMoves:
         print(v.startSQ, " ---> ", v.targetSQ)
     return validMoves[random.randint(0, len(validMoves) - 1)]
+
 
 '''
 def findBotMove(gs, validMoves):

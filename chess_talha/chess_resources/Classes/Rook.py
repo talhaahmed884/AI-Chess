@@ -9,6 +9,7 @@ class Rook(Piece, ABC):
         self.row = row
         self.col = col
         self.identity = identity
+        self.canCastle = True
 
     def checkMove(self, rowArg: int, colArg: int, board) -> bool:
         if Dimension.maxRow >= rowArg > self.row and colArg == self.col:
@@ -67,3 +68,12 @@ class Rook(Piece, ABC):
             if board[self.row][a] is not None:
                 return False
         return True
+
+    def disableCastling(self):
+        if self.identity[0] == 'w':
+            if self.row != 7 and self.col != 0 or self.col != 7:
+                self.canCastle = False
+        elif self.identity[0] == 'b':
+            if self.row != 0 and self.col != 0 or self.col != 7:
+                self.canCastle = False
+
