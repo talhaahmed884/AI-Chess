@@ -37,7 +37,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="C:\Users\talha\PycharmProjects\AI Project 2\venv"
+VIRTUAL_ENV="C:\Users\talha\PycharmProjects\chess_talha\venv"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"

@@ -1,7 +1,6 @@
 # Responsible for storing all the information for storing the current game state of the game. It will also be
 # responsible for determining the valid moves at the current state, it will also keep a move log
 import copy
-from collections import defaultdict
 
 from chess_resources.Classes.Bishop import Bishop
 from chess_resources.Classes.Dimension import Dimension

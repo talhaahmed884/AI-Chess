@@ -3,7 +3,7 @@ import pygame as p
 
 from chess_resources import ChessEngine
 
-width = height = 624  # 400 is another option
+width = height = 512  # 400 is another option
 dimension = 8  # Dimensions of a chess board are 8x8
 sq_size = height // dimension
 max_FPS = 15  # For animation
@@ -46,7 +46,8 @@ def drawPieces(screen, _board: list):
 def drawText(screen, text: str):
     font = p.font.SysFont("Sans-serif", 75, True, False)
     textObject = font.render(text, 0, p.Color('#404040'))
-    textLocation = p.Rect(0, 0, width, height).move(width/2 - textObject.get_width()/2, height/2 - textObject.get_height()/2)
+    textLocation = p.Rect(0, 0, width, height).move(width / 2 - textObject.get_width() / 2,
+                                                    height / 2 - textObject.get_height() / 2)
     screen.blit(textObject, textLocation)
 
 
@@ -87,10 +88,14 @@ def main():
                     playerClicks.append(sqSelected)  # append for both 1st and 2nd click
                 if len(playerClicks) == 2:  # after 2nd click
                     move = ChessEngine.Move(playerClicks[0], playerClicks[1], gs.board)
-                    gs.makeMove(move)
-                    if gs.isCheckMate():
-                        drawText(screen, 'CHECKMATE')
-                        _checkmate = True
+                    if sqSelected in gs.possibleMoves(playerClicks[0]):
+                        gs.makeMove(move)
+
+                        if gs.isCheckMate():
+                            gs.makeMove(move)
+                            drawText(screen, 'CHECKMATE')
+                            _checkmate = True
+
                     sqSelected = ()
                     playerClicks = []
             # Keyboard Press
@@ -114,3 +119,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
