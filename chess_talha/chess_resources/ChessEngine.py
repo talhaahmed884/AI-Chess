@@ -21,10 +21,14 @@ class Move:
 
 
 def _movement(move: Move, board: list):
-    board[move.startSQ[0]][move.startSQ[1]] = None
-    board[move.targetSQ[0]][move.targetSQ[1]] = move.pieceMoved
-    board[move.targetSQ[0]][move.targetSQ[1]].row = move.targetSQ[0]
-    board[move.targetSQ[0]][move.targetSQ[1]].col = move.targetSQ[1]
+    if isinstance(board[move.startSQ[0]][move.startSQ[1]], King):
+        if (move.startSQ[0] == move.targetSQ[0]) and abs(move.startSQ[1] - move.targetSQ[1]) == 2:
+            pass
+    else:
+        board[move.startSQ[0]][move.startSQ[1]] = None
+        board[move.targetSQ[0]][move.targetSQ[1]] = move.pieceMoved
+        board[move.targetSQ[0]][move.targetSQ[1]].row = move.targetSQ[0]
+        board[move.targetSQ[0]][move.targetSQ[1]].col = move.targetSQ[1]
 
 
 def _getKingPosition(board: list) -> (King, King):
@@ -47,7 +51,7 @@ def _disableKingCastling(identity: str, board: list):
             if isinstance(board[a][b], King):
                 if board[a][b].identity[0] == identity:
                     if board[a][b].canCastle:
-                        board[a][b].disableCastling()
+                        board[a][b].canCastle = False
                     return
 
 
@@ -57,7 +61,7 @@ def _disableRookCastling(identity: str, board: list):
             if isinstance(board[a][b], Rook):
                 if board[a][b].identity[0] == identity:
                     if board[a][b].canCastle:
-                        board[a][b].disableCastling()
+                        board[a][b].canCastle = False
 
 
 class GameState:
@@ -90,9 +94,9 @@ class GameState:
                 _movement(move, self.board)
                 self.moveLog.append(move)
                 self.whiteToMove = not self.whiteToMove
-                # if isinstance(self.board[move.targetSQ[0]][move.targetSQ[1]], King) or \
-                #         isinstance(self.board[move.targetSQ[0]][move.targetSQ[1]], Rook):
-                #     self.checkCastling(self.board[move.targetSQ[0]][move.targetSQ[1]].identity[0])
+                if isinstance(self.board[move.targetSQ[0]][move.targetSQ[1]], King) or \
+                        isinstance(self.board[move.targetSQ[0]][move.targetSQ[1]], Rook):
+                    self.checkCastling(self.board[move.targetSQ[0]][move.targetSQ[1]].identity[0])
 
     def checkCastling(self, identity: str):
         _disableKingCastling(identity, self.board)

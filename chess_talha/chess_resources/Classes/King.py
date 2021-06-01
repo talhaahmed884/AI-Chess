@@ -19,9 +19,9 @@ class King(Piece, ABC):
                     (abs(self.col - colArg) == 1 and self.row == rowArg) or \
                     (abs(self.col - colArg) == 1 and abs(self.row - rowArg) == 1):
                 return self.movePiece(rowArg, colArg, board)
-            # elif rowArg == self.row and abs(colArg - self.col) == 2:
-            #     if self._checkCastling(colArg, board):
-            #         return self.movePiece(rowArg, colArg, board)
+            elif rowArg == self.row and abs(colArg - self.col) == 2:
+                if self._checkCastling(colArg, board) and not self.isCheck(board):
+                    return self.movePiece(rowArg, colArg, board)
 
         return False
 
@@ -83,7 +83,7 @@ class King(Piece, ABC):
             start = col - 1
 
         for a in range(start, colArg, increment):
-            if board[self.row][a] is not None:
+            if board[self.row][a] is not None or self._moveUnderAttack(self.row, a, board):
                 return False
         return True
 
@@ -97,11 +97,13 @@ class King(Piece, ABC):
 
         return False
 
-    def disableCastling(self):
-        if self.identity[0] == 'w':
-            if self.row != 7 or self.col != 4:
-                self.canCastle = False
-        elif self.identity[0] == 'b':
-            if self.row != 0 or self.col != 4:
-                self.canCastle = False
+    def _moveUnderAttack(self, rowArg: int, colArg: int, board: list) -> bool:
+        for a in range(Dimension.maxRow + 1):
+            for b in range(Dimension.maxCol + 1):
+                if board[a][b]:
+                    if board[a][b].identity[0] != self.identity[0]:
+                        if board[a][b].checkMove(rowArg, colArg, board):
+                            return True
+
+        return False
 

@@ -69,11 +69,3 @@ class Rook(Piece, ABC):
                 return False
         return True
 
-    def disableCastling(self):
-        if self.identity[0] == 'w':
-            if self.row != 7 and self.col != 0 or self.col != 7:
-                self.canCastle = False
-        elif self.identity[0] == 'b':
-            if self.row != 0 and self.col != 0 or self.col != 7:
-                self.canCastle = False
-
