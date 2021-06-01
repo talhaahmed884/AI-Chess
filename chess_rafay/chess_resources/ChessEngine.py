@@ -1,6 +1,7 @@
 # Responsible for storing all the information for storing the current game state of the game. It will also be
 # responsible for determining the valid moves at the current state, it will also keep a move log
 import copy
+from collections import defaultdict
 
 from chess_resources.Classes.Bishop import Bishop
 from chess_resources.Classes.Dimension import Dimension
@@ -60,7 +61,7 @@ class GameState:
     whiteToMove = True
     moveLog = []
 
-    def makeMove(self, move: Move):
+    def makeMove(self, move: Move, changeTurn=True):
 
         if self.board[move.startSQ[0]][move.startSQ[1]] is not None:
             if self.board[move.startSQ[0]][move.startSQ[1]] is not None:
@@ -72,9 +73,10 @@ class GameState:
                                                                       self.board):
                 _movement(move, self.board)
                 self.moveLog.append(move)
-                self.whiteToMove = not self.whiteToMove
+                if changeTurn:
+                    self.whiteToMove = not self.whiteToMove
 
-    def undoMove(self):
+    def undoMove(self, changeTurn=True):
         if self.moveLog:
             move = self.moveLog.pop()
             self.board[move.startSQ[0]][move.startSQ[1]] = move.pieceMoved
@@ -82,8 +84,8 @@ class GameState:
 
             self.board[move.startSQ[0]][move.startSQ[1]].row = move.startSQ[0]
             self.board[move.startSQ[0]][move.startSQ[1]].col = move.startSQ[1]
-
-            self.whiteToMove = not self.whiteToMove
+            if changeTurn:
+                self.whiteToMove = not self.whiteToMove
 
     def possibleMoves(self, currPos: tuple):
         if self.board[currPos[0]][currPos[1]] is not None:
