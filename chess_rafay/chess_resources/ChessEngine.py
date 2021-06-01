@@ -62,11 +62,13 @@ class GameState:
     moveLog = []
 
     def makeMove(self, move: Move):
+
         if self.board[move.startSQ[0]][move.startSQ[1]] is not None:
             if self.board[move.startSQ[0]][move.startSQ[1]] is not None:
                 if (self.whiteToMove and self.board[move.startSQ[0]][move.startSQ[1]].identity[0] == 'b') or (
                         not self.whiteToMove and self.board[move.startSQ[0]][move.startSQ[1]].identity[0] == 'w'):
                     return
+
             if self.board[move.startSQ[0]][move.startSQ[1]].checkMove(move.targetSQ[0], move.targetSQ[1],
                                                                       self.board):
                 _movement(move, self.board)

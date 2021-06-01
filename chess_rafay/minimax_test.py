@@ -1,3 +1,10 @@
+'''
+This is UNIVERSITY KA CODE
+
+YOU CAN SKIP THIS BAISHAK CLOSE THIS SECTION CUZ IDK KHAIR COULD BE USED FOR HELP
+'''
+
+'''
 import copy
 import math
 import random
@@ -56,76 +63,6 @@ def result(board, action):
     return result_board
 
 
-def get_horizontal_winner(board):
-    # check horizontally
-    winner_val = None
-    board_len = len(board)
-    for i in range(board_len):
-        winner_val = board[i][0]
-        for j in range(board_len):
-            if board[i][j] != winner_val:
-                winner_val = None
-        if winner_val:
-            return winner_val
-    return winner_val
-
-
-def get_vertical_winner(board):
-    # check vertically
-    winner_val = None
-    board_len = len(board)
-    for i in range(board_len):
-        winner_val = board[0][i]
-        for j in range(board_len):
-            if board[j][i] != winner_val:
-                winner_val = None
-        if winner_val:
-            return winner_val
-    return winner_val
-
-
-def get_diagonal_winner(board):
-    # check diagonally
-    winner_val = None
-    board_len = len(board)
-    winner_val = board[0][0]
-    for i in range(board_len):
-        if board[i][i] != winner_val:
-            winner_val = None
-    if winner_val:
-        return winner_val
-
-    winner_val = board[0][board_len - 1]
-    for i in range(board_len):
-        j = board_len - 1 - i
-        if board[i][j] != winner_val:
-            winner_val = None
-
-    return winner_val
-
-
-def winner(board):
-    """
-    Returns the winner of the game, if there is one.
-    """
-    winner_val = get_horizontal_winner(board) or get_vertical_winner(board) or get_diagonal_winner(board) or None
-    return winner_val
-
-
-def terminal(board):
-    """
-    Returns True if game is over, False otherwise.
-    """
-    if winner(board) != None:
-        return True
-
-    for i in board:
-        for j in i:
-            if j == EMPTY:
-                return False
-    return True
-
-
 def utility(board):
     """
     Returns 1 if X has won the game, -1 if O has won, 0 otherwise.
@@ -139,15 +76,13 @@ def utility(board):
 
 
 def minimax(board):
-    """
-    Returns the optimal action for the current player on the board.
-    """
     if board == initial_state():
         res = set()
         row = random.randint(0, 2)
         col = random.randint(0, 2)
         res.add((row, col))
         return res
+
     elif player(board) == 'X':
         v = -sys.maxsize
         reqAction = None
@@ -220,3 +155,150 @@ if __name__ == "__main__":
                 if board[i][j] == EMPTY:
                     board = result(board, (i, j))
                     print(board)
+
+'''
+
+
+'''
+THIS IS THE VIDEOS CODE THAT I SENT YOU 11 MINS WALLI
+'''
+'''
+def minimax(position, depth, maximizingPLayer):
+    if depth == or gameOver in position:
+        return ScoreBoard(gs)
+
+    if maximizingPLayer:
+        maxEval = -infinity
+        for child in position:
+            eval = minimax(child, depth - 1, False)
+            maxEval = max(maxEval, eval)
+        return maxEval
+
+    else:
+        minEval = +infinity
+        for child in position:
+            eval = minimax(child, depth - 1, True)
+            minEval = min(minEval, eval)
+        return minEval
+'''
+
+'''
+THIS IS THE ALGO I THOUGHT OF BUT I DONT THIS THIS IS CORRECT COMPARE KARLO WITH ABOVE ALGOS, 
+PROBLEM IS THERE ARE 2 LOOPS HERE AND I DONT GET WHY THE OTHER ALGOS ARENT USING THESE 2 LOOPS
+'''
+# def minimax(gs, depth, isWhiteTurn):
+#     if depth == 0 or if checkMate is true:
+#         return the evaluation of the board
+#
+#     score = -infinity
+#     if its isWhiteTurn:
+#         for all the pieces of white in the current game state:
+#             for moves in all the moves that this piece can play:
+#                 play move
+#                 score = minimax(gs, depth - 1, False)
+#                 if the score > max:
+#                     max == score
+#                     if depth == the depth of the branches we specified:
+#                         save this move
+#
+#     else:
+#         vice versa for black
+
+
+
+'''
+THIS IS US BANDAY KI VIDEO KA CODE THAT WE ARE FOLLOWING THE ONE WE USED TO MAKE THE BOARD TOO 
+THIS WORKS FINE BUT A) PLEDGE AND B) IM NOT SURE IF I IMPLEMENTED THIS CORRECTLY OR IF THE ALGO IS WORKING CORRECTLY
+'''
+
+
+def ScoreTheBoard(gs):
+    score = 0
+    # if gs.CheckMate:
+    #     if gs.whiteToMove:
+    #         return -sys.maxsize  # Black Wins
+    #     else:
+    #         return sys.maxsize
+    # elif gs.StaleMate:
+    #     return 0
+    for row in gs.board:
+        for piece in row:
+            if piece:
+                score += scores_dict[piece.identity[1]] if piece.identity[0] == 'w' else -scores_dict[piece.identity[1]]
+    return score
+
+
+def findBestMoveMinMax(gs, valid_moves):
+    global nextMove
+    nextMove = None
+    print()
+    _MinimaxFunc(gs, valid_moves, 2, gs.whiteToMove)
+    print()
+    print("================> THE NEXT MOVE OF THE PLAYER IS: ", nextMove)
+    return nextMove
+
+
+def _MinimaxFunc(gs, valid_movesList, depth, player_IsWhite):
+    global nextMove
+    if depth == 0:
+       return ScoreTheBoard(gs)
+    if player_IsWhite:
+        maxScore = -sys.maxsize - 1
+        for move in valid_movesList:
+            gs.makeMove(move)
+            moveList = gs.getAllPossibleMovesOfASide()
+            score = _MinimaxFunc(gs, moveList, depth - 1, False)
+            print("White Back From Recursive Calls Score is: ", score)
+            if score >= maxScore:
+                maxScore = score
+                if depth == DEPTH:
+                    print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+                    print("SETTING THE MOVE OF THE PLAYER TO: ", move.startSQ, " --> ", move.targetSQ)
+                    print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+                    nextMove = move
+            gs.undoMove()
+        print("--------------------------------------END OF WHITE LOOP------------------------------------------------")
+        return maxScore
+
+    else:
+        minScore = sys.maxsize
+        selected_move = None
+        for move in valid_movesList:
+            print("BLACK: Move: ", move.startSQ, " --> ", move.targetSQ, " DEPTH: ", depth)
+            gs.makeMove(move)
+            moveList = gs.getAllPossibleMovesOfASide()
+            copyDepth = depth
+            score = _MinimaxFunc(gs, moveList, copyDepth - 1, True)
+            print("Black Back From Recursive Calls Score is: ", score)
+            if score <= minScore:
+                minScore = score
+                if depth == DEPTH:
+                    print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+                    print("SETTING THE MOVE OF THE PLAYER TO: ", move.startSQ, " --> ", move.targetSQ)
+                    print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+                    nextMove = move
+            gs.undoMove()
+        print("--------------------------------------END OF BLACK LOOP------------------------------------------------")
+        return minScore
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
