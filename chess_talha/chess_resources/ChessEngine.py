@@ -23,12 +23,32 @@ class Move:
 def _movement(move: Move, board: list):
     if isinstance(board[move.startSQ[0]][move.startSQ[1]], King):
         if (move.startSQ[0] == move.targetSQ[0]) and abs(move.startSQ[1] - move.targetSQ[1]) == 2:
-            pass
-    else:
-        board[move.startSQ[0]][move.startSQ[1]] = None
-        board[move.targetSQ[0]][move.targetSQ[1]] = move.pieceMoved
-        board[move.targetSQ[0]][move.targetSQ[1]].row = move.targetSQ[0]
-        board[move.targetSQ[0]][move.targetSQ[1]].col = move.targetSQ[1]
+            rRow = 0
+            if board[move.startSQ[0]][move.startSQ[1]].identity[0] == 'w':
+                rRow = 7
+            elif board[move.startSQ[0]][move.startSQ[1]].identity[0] == 'b':
+                rRow = 0
+
+            if move.targetSQ[1] == 6:
+                board[rRow][5] = board[rRow][7]
+                board[rRow][5].col = 5
+                board[rRow][5].canCastle = False
+                board[rRow][7] = None
+            elif move.targetSQ[1] == 2:
+                board[rRow][3] = board[rRow][0]
+                board[rRow][3].col = 3
+                board[rRow][3].canCastle = False
+                board[rRow][0] = None
+
+        board[move.startSQ[0]][move.startSQ[1]].canCastle = False
+
+    if isinstance(board[move.startSQ[0]][move.startSQ[1]], Rook):
+        board[move.startSQ[0]][move.startSQ[1]].canCastle = False
+
+    board[move.startSQ[0]][move.startSQ[1]] = None
+    board[move.targetSQ[0]][move.targetSQ[1]] = move.pieceMoved
+    board[move.targetSQ[0]][move.targetSQ[1]].row = move.targetSQ[0]
+    board[move.targetSQ[0]][move.targetSQ[1]].col = move.targetSQ[1]
 
 
 def _getKingPosition(board: list) -> (King, King):
@@ -45,23 +65,15 @@ def _getKingPosition(board: list) -> (King, King):
     return wKing, bKing
 
 
-def _disableKingCastling(identity: str, board: list):
-    for a in range(Dimension.maxRow + 1):
-        for b in range(Dimension.maxCol + 1):
-            if isinstance(board[a][b], King):
-                if board[a][b].identity[0] == identity:
-                    if board[a][b].canCastle:
-                        board[a][b].canCastle = False
-                    return
-
-
-def _disableRookCastling(identity: str, board: list):
+def _rookCastling(identity: str, board: list, enable: bool):
     for a in range(Dimension.maxRow + 1):
         for b in range(Dimension.maxCol + 1):
             if isinstance(board[a][b], Rook):
                 if board[a][b].identity[0] == identity:
-                    if board[a][b].canCastle:
+                    if not enable:
                         board[a][b].canCastle = False
+                    else:
+                        board[a][b].canCastle = True
 
 
 class GameState:
@@ -94,22 +106,49 @@ class GameState:
                 _movement(move, self.board)
                 self.moveLog.append(move)
                 self.whiteToMove = not self.whiteToMove
-                if isinstance(self.board[move.targetSQ[0]][move.targetSQ[1]], King) or \
-                        isinstance(self.board[move.targetSQ[0]][move.targetSQ[1]], Rook):
-                    self.checkCastling(self.board[move.targetSQ[0]][move.targetSQ[1]].identity[0])
-
-    def checkCastling(self, identity: str):
-        _disableKingCastling(identity, self.board)
-        _disableRookCastling(identity, self.board)
 
     def undoMove(self):
         if self.moveLog:
             move = self.moveLog.pop()
+
+            if isinstance(self.board[move.targetSQ[0]][move.targetSQ[1]], King):
+                if (move.startSQ[0] == move.targetSQ[0]) and abs(move.startSQ[1] - move.targetSQ[1]) == 2:
+                    rRow = 0
+                    if self.board[move.targetSQ[0]][move.targetSQ[1]].identity[0] == 'w':
+                        rRow = 7
+                    elif self.board[move.targetSQ[0]][move.targetSQ[1]].identity[0] == 'b':
+                        rRow = 0
+
+                    if move.targetSQ[1] == 6:
+                        self.board[rRow][7] = self.board[rRow][5]
+                        self.board[rRow][7].col = 7
+                        self.board[rRow][7].canCastle = True
+                        self.board[rRow][5] = None
+                    elif move.targetSQ[1] == 2:
+                        self.board[rRow][0] = self.board[rRow][3]
+                        self.board[rRow][0].col = 0
+                        self.board[rRow][0].canCastle = True
+                        self.board[rRow][3] = None
+
             self.board[move.startSQ[0]][move.startSQ[1]] = move.pieceMoved
             self.board[move.targetSQ[0]][move.targetSQ[1]] = move.pieceCaptured
 
             self.board[move.startSQ[0]][move.startSQ[1]].row = move.startSQ[0]
             self.board[move.startSQ[0]][move.startSQ[1]].col = move.startSQ[1]
+
+            rRow = 0
+            if self.board[move.startSQ[0]][move.startSQ[1]].identity[0] == 'w':
+                rRow = 7
+            elif self.board[move.startSQ[0]][move.startSQ[1]].identity[0] == 'b':
+                rRow = 0
+
+            if isinstance(self.board[move.startSQ[0]][move.startSQ[1]], King):
+                if move.startSQ[0] == rRow and move.startSQ[1] == 4:
+                    self.board[move.startSQ[0]][move.startSQ[1]].canCastle = True
+
+            if isinstance(self.board[move.startSQ[0]][move.startSQ[1]], Rook):
+                if move.startSQ[0] == rRow and move.startSQ[1] == 0 or move.startSQ[1] == 7:
+                    self.board[move.startSQ[0]][move.startSQ[1]].canCastle = True
 
             self.whiteToMove = not self.whiteToMove
 
@@ -171,9 +210,6 @@ class GameState:
             tKing = bKing
 
         if tKing is not None:
-            print(tKing.identity)
-
-        if tKing is not None:
             for a in range(0, Dimension.maxRow + 1):
                 for b in range(0, Dimension.maxCol + 1):
                     if self.board[a][b] is not None:
@@ -198,3 +234,4 @@ class GameState:
 
             print('CHECKMATE HAS OCCURRED')
             return True
+

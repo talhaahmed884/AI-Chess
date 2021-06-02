@@ -20,7 +20,7 @@ class King(Piece, ABC):
                     (abs(self.col - colArg) == 1 and abs(self.row - rowArg) == 1):
                 return self.movePiece(rowArg, colArg, board)
             elif rowArg == self.row and abs(colArg - self.col) == 2:
-                if self._checkCastling(colArg, board) and not self.isCheck(board):
+                if self._checkCastling(colArg, board) and not self.isCheck(board) and self.canCastle:
                     return self.movePiece(rowArg, colArg, board)
 
         return False
@@ -56,15 +56,14 @@ class King(Piece, ABC):
         return False
 
     def _checkRightSideCastling(self, board: list) -> bool:
-        if self.canCastle:
-            if self.identity[0] == 'w':
-                if isinstance(board[7][7], Rook):
-                    if board[7][7].canCastle:
-                        return self._validCol(7, board)
-            elif self.identity[0] == 'b':
-                if isinstance(board[0][7], Rook):
-                    if board[0][7].canCastle:
-                        return self._validCol(7, board)
+        if self.identity[0] == 'w':
+            if isinstance(board[7][7], Rook):
+                if board[7][7].canCastle:
+                    return self._validCol(7, board)
+        elif self.identity[0] == 'b':
+            if isinstance(board[0][7], Rook):
+                if board[0][7].canCastle:
+                    return self._validCol(7, board)
 
         return False
 
