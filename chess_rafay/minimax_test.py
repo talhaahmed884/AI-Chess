@@ -158,7 +158,6 @@ if __name__ == "__main__":
 
 '''
 
-
 '''
 THIS IS THE VIDEOS CODE THAT I SENT YOU 11 MINS WALLI
 '''
@@ -205,7 +204,6 @@ PROBLEM IS THERE ARE 2 LOOPS HERE AND I DONT GET WHY THE OTHER ALGOS ARENT USING
 #         vice versa for black
 
 
-
 '''
 THIS IS US BANDAY KI VIDEO KA CODE THAT WE ARE FOLLOWING THE ONE WE USED TO MAKE THE BOARD TOO 
 THIS WORKS FINE BUT A) PLEDGE AND B) IM NOT SURE IF I IMPLEMENTED THIS CORRECTLY OR IF THE ALGO IS WORKING CORRECTLY
@@ -241,7 +239,7 @@ def findBestMoveMinMax(gs, valid_moves):
 def _MinimaxFunc(gs, valid_movesList, depth, player_IsWhite):
     global nextMove
     if depth == 0:
-       return ScoreTheBoard(gs)
+        return ScoreTheBoard(gs)
     if player_IsWhite:
         maxScore = -sys.maxsize - 1
         for move in valid_movesList:
@@ -280,25 +278,3 @@ def _MinimaxFunc(gs, valid_movesList, depth, player_IsWhite):
             gs.undoMove()
         print("--------------------------------------END OF BLACK LOOP------------------------------------------------")
         return minScore
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

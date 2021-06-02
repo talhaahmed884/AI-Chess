@@ -65,17 +65,6 @@ def _getKingPosition(board: list) -> (King, King):
     return wKing, bKing
 
 
-def _rookCastling(identity: str, board: list, enable: bool):
-    for a in range(Dimension.maxRow + 1):
-        for b in range(Dimension.maxCol + 1):
-            if isinstance(board[a][b], Rook):
-                if board[a][b].identity[0] == identity:
-                    if not enable:
-                        board[a][b].canCastle = False
-                    else:
-                        board[a][b].canCastle = True
-
-
 class GameState:
     board = [
         [Rook(0, 0, 'bR'), Knight(0, 1, 'bN'), Bishop(0, 2, 'bB'), Queen(0, 3, 'bQ'), King(0, 4, 'bK'),
@@ -106,6 +95,13 @@ class GameState:
                 _movement(move, self.board)
                 self.moveLog.append(move)
                 self.whiteToMove = not self.whiteToMove
+
+                if isinstance(self.board[move.targetSQ[0]][move.targetSQ[1]], Pawn):
+                    self._pawnPromotion(self.board[move.targetSQ[0]][move.targetSQ[1]])
+
+    def _pawnPromotion(self, pawn: Pawn):
+        if pawn.row == 7 or pawn.row == 0:
+            self.board[pawn.row][pawn.col] = Queen(pawn.row, pawn.col, pawn.identity[0] + 'Q')
 
     def undoMove(self):
         if self.moveLog:

@@ -1,6 +1,7 @@
 import random
 import sys
-from chess_resources.ChessEngine import GameState, Move, _movement, _getKingPosition
+
+from chess_resources.ChessEngine import GameState, Move, _getKingPosition
 
 scores_dict = {"Q": 9, "R": 5, "B": 3, "N": 3, "P": 1, "K": 0}
 DEPTH = 2
@@ -14,10 +15,10 @@ def evaluateBoard(gs: GameState) -> int:
             return -sys.maxsize  # Black Wins
         else:
             return sys.maxsize  # White Wins
-    wking, bking = _getKingPosition(gs.board)
-    if wking.isCheck(gs.board):
+    wKing, bKing = _getKingPosition(gs.board)
+    if wKing.isCheck(gs.board):
         return -15
-    elif bking.isCheck(gs.board):
+    elif bKing.isCheck(gs.board):
         return 15
     elif gs.getAllPossibleMovesOfASide() is None:
         return 0
@@ -34,22 +35,23 @@ def findRandomMove(allMoves: list) -> Move:
 
 def findGreedyMove(gs: GameState, checkOnTheseMoves: list, isWhite: bool) -> Move:
     turnSwitch = 1 if isWhite else -1
-    maxboardVal = -sys.maxsize - 1
+    maxBoardVal = -sys.maxsize - 1
     for move in checkOnTheseMoves:
         gs.makeMove(move, False)
         score = turnSwitch * evaluateBoard(gs)
         # print("GREEDY MOVE: ", gs.board[move.targetSQ[0]][move.targetSQ[1]].identity, "-> MOVES: ", move.startSQ,
         #       "--->", move.targetSQ, "SCORE: ", score)
 
-        if score > maxboardVal:
-            maxboardVal = score
+        if score > maxBoardVal:
+            maxBoardVal = score
         gs.undoMove(False)
 
-    return maxboardVal
+    return maxBoardVal
 
 
 def findBestMove(gs):
-    bestMovesList = findMinmaxMove(gs, 2, -sys.maxsize, sys.maxsize, gs.whiteToMove, [])[1]
+    bestMovesList = findMinMaxMove(gs, 2, -sys.maxsize, sys.maxsize, gs.whiteToMove, [])[1]
+    bestMove = None
     # print()
     # print("_____________________________________BEST MOVE LIST_________________________________________________")
     maxScore = -sys.maxsize
@@ -64,19 +66,23 @@ def findBestMove(gs):
                 maxScore = score
                 bestMove = move
             gs.undoMove(False)
+
+        if maxScore == -sys.maxsize:
+            bestMove = bestMovesList[0]
     elif len(bestMovesList) == 1:
         bestMove = bestMovesList[0]
     else:
-        print("CHECK MATE HAS OCCURED")
+        print("NO POSSIBLE MOVES FOUND")
         return None
 
     # bestMove = findRandomMove(bestMovesList)
+    print(bestMove.startSQ, bestMove.targetSQ)
     gs.makeMove(bestMove)
     # print("=====> SCORE FOR THESE MOVES ARE: ", evaluateBoard(gs))
     return bestMove
 
 
-def findMinmaxMove(gs: GameState, depth: int, alpha, beta, isWhiteTurn: bool, bestMoves: list) -> int:
+def findMinMaxMove(gs: GameState, depth: int, alpha, beta, isWhiteTurn: bool, bestMoves: list) -> int:
     if depth == 0 or gs.isCheckMate():
         return evaluateBoard(gs), []
     if isWhiteTurn:  # Will try to maximize the score for white
@@ -87,7 +93,7 @@ def findMinmaxMove(gs: GameState, depth: int, alpha, beta, isWhiteTurn: bool, be
         # print("---------------------------------------------------------------------------------------------------------")
         for move in allWhiteMoves:
             gs.makeMove(move)
-            score = findMinmaxMove(gs, depth - 1, alpha, beta, False, bestMoves)[0]
+            score = findMinMaxMove(gs, depth - 1, alpha, beta, False, bestMoves)[0]
             # print("WHITE: ", "MOVES: ", gs.board[move.targetSQ[0]][move.targetSQ[1]].identity ,move.startSQ, "--->", move.targetSQ, "SCORE: ", score)
             if score >= maxScore:
                 if depth == DEPTH:
@@ -118,7 +124,7 @@ def findMinmaxMove(gs: GameState, depth: int, alpha, beta, isWhiteTurn: bool, be
             gs.makeMove(move)
             # print("BLACK OF DEPTH: ", depth, " TRIES A MOVE: ", gs.board[move.targetSQ[0]][move.targetSQ[1]].identity,
             #       move.startSQ, "--->", move.targetSQ)
-            score = findMinmaxMove(gs, depth - 1, alpha, beta, True, bestMoves)[0]
+            score = findMinMaxMove(gs, depth - 1, alpha, beta, True, bestMoves)[0]
             # print("WHITES RESPONSE FOR THIS MOVE HAS SCORE: ", score)
             # print()
 
@@ -127,8 +133,7 @@ def findMinmaxMove(gs: GameState, depth: int, alpha, beta, isWhiteTurn: bool, be
                     if minScore == score:
                         bestMoves.append(move)
                     else:
-                        bestMoves = []
-                        bestMoves.append(move)
+                        bestMoves = [move]
                 minScore = score
 
             beta = min(beta, score)

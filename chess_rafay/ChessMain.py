@@ -1,12 +1,8 @@
 # The driver file, responsible for handling the user input and the current GameState object
-import random
-import sys
-
 import pygame as p
 
 from chess_resources import ChessEngine, AI_Bot
-import chess_resources.AI_Bot
-from chess_resources.ChessEngine import Move
+from chess_resources.ChessEngine import _getKingPosition
 
 width = height = 512  # 400 is another option
 dimension = 8  # Dimensions of a chess board are 8x8
@@ -23,7 +19,7 @@ def load_images():
 
 
 # Helping Methods
-def drawBoard(screen, selected_pos: tuple, allMoves: list):
+def drawBoard(screen, selected_pos: tuple, allMoves: list, checkSquare=None):
     # Only drawing the dark squares as the light color is the background
     colors = ["#EAE9D2", "#4B7399"]
     highlightedColors = ["#FF6E5E", "#D34437"]
@@ -36,6 +32,10 @@ def drawBoard(screen, selected_pos: tuple, allMoves: list):
             if allMoves and (row, col) in allMoves:
                 allMoves.pop(0)
                 color = highlightedColors[(row + col) % 2]
+
+            if checkSquare and (row, col) == checkSquare:
+                color = p.Color('yellow')
+
             p.draw.rect(screen, p.Color(color), p.Rect(col * sq_size, row * sq_size, sq_size, sq_size))
 
 
@@ -52,7 +52,7 @@ def drawPieces(screen, _board: list):
                 font = p.font.SysFont("Sans-serif", 20, True, False)
                 textObject = font.render(str(row), 0, p.Color(color))
                 textLocation = p.Rect(col * sq_size, row * sq_size, 20, 20).move(20 / 2 - textObject.get_width() / 2,
-                                                                20 / 2 - textObject.get_height() / 2)
+                                                                                 20 / 2 - textObject.get_height() / 2)
                 screen.blit(textObject, textLocation)
             if row == 0:
                 font = p.font.SysFont("Sans-serif", 20, True, False)
@@ -71,8 +71,8 @@ def drawText(screen, text: str):
 
 
 # Responsible for all the graphics within a current game state.
-def drawGameState(screen, gs: ChessEngine.GameState(), selected_pos=None, allMoves=None):
-    drawBoard(screen, selected_pos, allMoves)  # draw squares on the board
+def drawGameState(screen, gs: ChessEngine.GameState(), selected_pos=None, allMoves=None, checkSquare=None):
+    drawBoard(screen, selected_pos, allMoves, checkSquare)  # draw squares on the board
     # add in piece highlighting or move suggestions (later)
     drawPieces(screen, gs.board)  # draw pieces on top of those squares
 
@@ -92,7 +92,6 @@ def main():
     myPlayer = 'w'
     gameOver = False
     doNotDraw = False
-    COUNT = 0
     while running:
         humanTurn = gs.whiteToMove if myPlayer == 'w' else not gs.whiteToMove
         # print(gs.whiteToMove, whitePlayer, blackPlayer)
@@ -117,7 +116,8 @@ def main():
                         playerClicks.append(sqSelected)  # append for both 1st and 2nd click
                     if len(playerClicks) == 2:  # after 2nd click
                         move = ChessEngine.Move(playerClicks[0], playerClicks[1], gs.board)
-                        gs.makeMove(move)
+                        if sqSelected in gs.possibleMoves(playerClicks[0]):
+                            gs.makeMove(move)
                         if gs.isCheckMate():
                             drawText(screen, 'CHECKMATE')
                             gameOver = True
@@ -131,36 +131,30 @@ def main():
 
         if not gameOver and not humanTurn:
             choose_move = gs.getAllPossibleMovesOfASide()
-            print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
             bot_Move = AI_Bot.findBestMove(gs)
-            #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            #MAKE THE CHECKMATE CHECK CORRECT HERE
-            #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             if bot_Move is None and not gs.isCheckMate():
-                print("STRONG MOVE BY PLAYER AI TAKES A RISK")
-                bot_Move = AI_Bot.findRandomMove(choose_move)
+                print('NO POSSIBLE MOVES')
+                drawText(screen, 'STALEMATE')
+                gameOver = True
             else:
                 if gs.isCheckMate():
+                    drawText(screen, 'CHECKMATE')
                     gameOver = True
-            # for row in gs.board:
-            #     for col in row:
-            #         if col:
-            #             print(col.identity, end="\t")
-            #         else:
-            #             print("--", end="\t")
-            #     print()
-            # print("IS WHITE: ", gs.whiteToMove)
-            # print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX> IN MAIN FUNCTION: ", bot_Move.startSQ, " --> ", bot_Move.targetSQ)
-            # temp = Move(bot_Move.startSQ, bot_Move.targetSQ, gs.board)
-            # gs.makeMove(temp)
-            # print("IS WHITE: ", gs.whiteToMove)
+
+        wKing, bKing = _getKingPosition(gs.board)
+        checkedKing = None
+        if wKing.isCheck(gs.board):
+            checkedKing = (wKing.row, wKing.col)
+        elif bKing.isCheck(gs.board):
+            checkedKing = (bKing.row, bKing.col)
 
         if len(playerClicks) == 1:
             if gs.board[sqSelected[0]][sqSelected[1]] is not None:
                 highlightMoves = gs.possibleMoves(sqSelected)
+
                 drawGameState(screen, gs, sqSelected, highlightMoves)
         elif not doNotDraw:
-            drawGameState(screen, gs)
+            drawGameState(screen, gs, None, None, checkedKing)
 
         clock.tick(max_FPS)
         p.display.flip()

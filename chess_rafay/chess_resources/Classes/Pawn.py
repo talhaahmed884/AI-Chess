@@ -70,4 +70,3 @@ class Pawn(Piece, ABC):
             if board[a][self.col] is not None:
                 return False
         return True
-

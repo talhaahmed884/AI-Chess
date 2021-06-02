@@ -2,6 +2,7 @@
 import pygame as p
 
 from chess_resources import ChessEngine
+from chess_resources.ChessEngine import _getKingPosition
 
 width = height = 512  # 400 is another option
 dimension = 8  # Dimensions of a chess board are 8x8
@@ -18,7 +19,7 @@ def load_images():
 
 
 # Helping Methods
-def drawBoard(screen, selected_pos: tuple, allMoves: list):
+def drawBoard(screen, selected_pos: tuple, allMoves: list, checkSquare=None):
     # Only drawing the dark squares as the light color is the background
     colors = ["#E7E8E4", "#33684B"]
     highlightedColors = ["#FF6E5E", "#D34437"]
@@ -31,6 +32,10 @@ def drawBoard(screen, selected_pos: tuple, allMoves: list):
             if allMoves and (row, col) in allMoves:
                 allMoves.pop(0)
                 color = highlightedColors[(row + col) % 2]
+
+            if checkSquare and (row, col) == checkSquare:
+                color = p.Color('yellow')
+
             p.draw.rect(screen, p.Color(color), p.Rect(col * sq_size, row * sq_size, sq_size, sq_size))
 
 
@@ -52,8 +57,8 @@ def drawText(screen, text: str):
 
 
 # Responsible for all the graphics within a current game state.
-def drawGameState(screen, gs: ChessEngine.GameState(), selected_pos=None, allMoves=None):
-    drawBoard(screen, selected_pos, allMoves)  # draw squares on the board
+def drawGameState(screen, gs: ChessEngine.GameState(), selected_pos=None, allMoves=None, checkSquare=None):
+    drawBoard(screen, selected_pos, allMoves, checkSquare)  # draw squares on the board
     # add in piece highlighting or move suggestions (later)
     drawPieces(screen, gs.board)  # draw pieces on top of those squares
 
@@ -103,6 +108,13 @@ def main():
                 if e.key == p.K_z:
                     gs.undoMove()
 
+        wKing, bKing = _getKingPosition(gs.board)
+        checkedKing = None
+        if wKing.isCheck(gs.board):
+            checkedKing = (wKing.row, wKing.col)
+        elif bKing.isCheck(gs.board):
+            checkedKing = (bKing.row, bKing.col)
+
         if len(playerClicks) == 1:
             if gs.board[sqSelected[0]][sqSelected[1]] is not None:
                 highlightMoves = gs.possibleMoves(sqSelected)
@@ -111,7 +123,7 @@ def main():
 
         else:
             if not _checkmate:
-                drawGameState(screen, gs)
+                drawGameState(screen, gs, None, None, checkedKing)
 
         clock.tick(max_FPS)
         p.display.flip()
