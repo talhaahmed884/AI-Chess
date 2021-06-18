@@ -4,7 +4,7 @@ import pygame as p
 from chess_resources import ChessEngine, AI_Bot
 from chess_resources.ChessEngine import _getKingPosition
 
-width = height = 512  # 400 is another option
+width = height = 480  # 400 is another option
 dimension = 8  # Dimensions of a chess board are 8x8
 sq_size = height // dimension
 max_FPS = 15  # For animation
@@ -92,6 +92,7 @@ def main():
     myPlayer = 'w'
     gameOver = False
     doNotDraw = False
+    move_count = 0
     while running:
         humanTurn = gs.whiteToMove if myPlayer == 'w' else not gs.whiteToMove
         # print(gs.whiteToMove, whitePlayer, blackPlayer)
@@ -121,7 +122,9 @@ def main():
                         if gs.isCheckMate():
                             drawText(screen, 'CHECKMATE')
                             gameOver = True
-
+                        elif gs.getAllPossibleMovesOfASide() is None:
+                            drawText(screen, 'STALEMATE')
+                            gameOver = True
                         sqSelected = ()
                         playerClicks = []
             # Keyboard Press
@@ -131,7 +134,10 @@ def main():
 
         if not gameOver and not humanTurn:
             choose_move = gs.getAllPossibleMovesOfASide()
-            bot_Move = AI_Bot.findBestMove(gs)
+            if move_count == 0:
+                bot_Move = AI_Bot.findBestMove(gs, True)
+            else:
+                bot_Move = AI_Bot.findBestMove(gs)
             if bot_Move is None and not gs.isCheckMate():
                 print('NO POSSIBLE MOVES')
                 drawText(screen, 'STALEMATE')

@@ -1,3 +1,4 @@
+import copy
 import random
 import sys
 
@@ -10,16 +11,15 @@ DEPTH = 2
 def evaluateBoard(gs: GameState) -> int:
     score = 0
     if gs.isCheckMate():
-        print("CHECKMATE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         if gs.whiteToMove:
             return -sys.maxsize  # Black Wins
         else:
             return sys.maxsize  # White Wins
     wKing, bKing = _getKingPosition(gs.board)
     if wKing.isCheck(gs.board):
-        return -15
+        return -2
     elif bKing.isCheck(gs.board):
-        return 15
+        return 2
     elif gs.getAllPossibleMovesOfASide() is None:
         return 0
     for row in gs.board:
@@ -39,9 +39,8 @@ def findGreedyMove(gs: GameState, checkOnTheseMoves: list, isWhite: bool) -> Mov
     for move in checkOnTheseMoves:
         gs.makeMove(move, False)
         score = turnSwitch * evaluateBoard(gs)
-        # print("GREEDY MOVE: ", gs.board[move.targetSQ[0]][move.targetSQ[1]].identity, "-> MOVES: ", move.startSQ,
+        # # #print"GREEDY MOVE: ", gs.board[move.targetSQ[0]][move.targetSQ[1]].identity, "-> MOVES: ", move.startSQ,
         #       "--->", move.targetSQ, "SCORE: ", score)
-
         if score > maxBoardVal:
             maxBoardVal = score
         gs.undoMove(False)
@@ -49,37 +48,41 @@ def findGreedyMove(gs: GameState, checkOnTheseMoves: list, isWhite: bool) -> Mov
     return maxBoardVal
 
 
-def findBestMove(gs):
-    bestMovesList = findMinMaxMove(gs, 2, -sys.maxsize, sys.maxsize, gs.whiteToMove, [])[1]
-    bestMove = None
-    # print()
-    # print("_____________________________________BEST MOVE LIST_________________________________________________")
+def findBestMove(gs, opening = False):
+    #print("\n\n************NEW MOVE*************************NEW MOVE**********************NEW MOVE*************************NEW MOVE************************\n")
+    bestMovesList = findMinMaxMove(gs, 2, -sys.maxsize, sys.maxsize, gs.whiteToMove, [])[1]                             # Get best moves from min max
+    bestMovesList2 = []
     maxScore = -sys.maxsize
     if len(bestMovesList) > 1:
+        print("---------------------------")
         for move in bestMovesList:
-            # print("One of the best moves: ", gs.board[move.startSQ[0]][move.startSQ[1]].identity, move.startSQ, "-->",
-            #       move.targetSQ)
             gs.makeMove(move, False)
             checkOnTheseMoves = gs.getAllPossibleMovesOfASide()
-            score = findGreedyMove(gs, checkOnTheseMoves, gs.whiteToMove)
+            score = findGreedyMove(gs, checkOnTheseMoves, gs.whiteToMove)                                               # get greedy score
             if score >= maxScore:
                 maxScore = score
-                bestMove = move
+                bestMovesList2.append(move)                                                                             # append these moves in another list
             gs.undoMove(False)
 
         if maxScore == -sys.maxsize:
-            bestMove = bestMovesList[0]
+            bestMovesList2 = [findRandomMove(bestMovesList)]
     elif len(bestMovesList) == 1:
-        bestMove = bestMovesList[0]
+        bestMovesList2 = [bestMovesList[0]]
     else:
-        print("NO POSSIBLE MOVES FOUND")
+        #print("NO POSSIBLE MOVES FOUND")
         return None
+    for b in bestMovesList2:
+        print(b.pieceMoved.identity, b.startSQ, b.targetSQ)
+    bestMove_ = findRandomMove(bestMovesList2)                                                                          # get random move from bestest move list
+    # in case of a duplicate move I calculate move again by randomizing it
+    if len(gs.moveLog) >= 4:
+        for m in range(2):
+            if bestMove_.startSQ == gs.moveLog[-2 * (m+1)].startSQ and bestMove_.targetSQ == gs.moveLog[-2 * (m+1)].targetSQ:
+                #print("=======================>>>>>>> MOVE DUPLICATED MULTIPLE TIMES")
+                bestMove_ = findRandomMove(bestMovesList)
 
-    # bestMove = findRandomMove(bestMovesList)
-    print(bestMove.startSQ, bestMove.targetSQ)
-    gs.makeMove(bestMove)
-    # print("=====> SCORE FOR THESE MOVES ARE: ", evaluateBoard(gs))
-    return bestMove
+    gs.makeMove(bestMove_)
+    return bestMove_
 
 
 def findMinMaxMove(gs: GameState, depth: int, alpha, beta, isWhiteTurn: bool, bestMoves: list) -> int:
@@ -89,61 +92,52 @@ def findMinMaxMove(gs: GameState, depth: int, alpha, beta, isWhiteTurn: bool, be
         maxScore = -sys.maxsize
         allWhiteMoves = gs.getAllPossibleMovesOfASide()
         bestMoves = []
-        # print()
-        # print("---------------------------------------------------------------------------------------------------------")
+        #print("---------------------------------------------------------------------------------------------------------")
         for move in allWhiteMoves:
             gs.makeMove(move)
+            #print("WHITE OF DEPTH: ", depth, " TRIES A MOVE: ", gs.board[move.targetSQ[0]][move.targetSQ[1]].identity, move.startSQ, "--->", move.targetSQ)
             score = findMinMaxMove(gs, depth - 1, alpha, beta, False, bestMoves)[0]
-            # print("WHITE: ", "MOVES: ", gs.board[move.targetSQ[0]][move.targetSQ[1]].identity ,move.startSQ, "--->", move.targetSQ, "SCORE: ", score)
-            if score >= maxScore:
-                if depth == DEPTH:
-                    if maxScore == score:
-                        bestMoves.append(move)
-                    else:
-                        bestMove = []
-                        bestMoves.append(move)
-                maxScore = score
-            alpha = max(alpha, score)
+            #print("BLACK RESPONSE FOR THIS MOVE HAS SCORE: ", score)
+            #print("WHITE: ", "MOVES: ", gs.board[move.targetSQ[0]][move.targetSQ[1]].identity ,move.startSQ, "--->", move.targetSQ, "SCORE: ", score)
+            if depth == DEPTH and score >= maxScore:
+                if maxScore == score:
+                    bestMoves.append(move)
+                else:
+                    bestMoves = [move]
+            maxScore = max(maxScore, score)
+            alpha = max(alpha, maxScore)
             gs.undoMove()
-
             if beta <= alpha:
+                #print("WHITE: BREAKING CUZ OF AB PRUNING IN WHITE")
                 break
-        # print("-------------------------------WHITE LOOP ENDS HERE----------------------------------------")
+        #print("-------------------------------WHITE LOOP ENDS HERE----------------------------------------")
         # if bestMoves:
-        #     print("WHITE: ", "BESTT MOVE FOR THIS LOOP ITERATION: ", bestMoves[0].startSQ, "--->",
-        #       bestMoves[0].targetSQ, "SCORE: ", maxScore)
+            #print("WHITE: ", "BESTT MOVE FOR THIS LOOP ITERATION: ", bestMoves[0].startSQ, "--->", bestMoves[0].targetSQ, "SCORE: ", maxScore)
 
         return maxScore, bestMoves
     else:
         minScore = sys.maxsize
         allBlackMoves = gs.getAllPossibleMovesOfASide()
         bestMoves = []
-        # print()
-        # print("---------------------------------------------------------------------------------------------------------")
+        #print("---------------------------------------------------------------------------------------------------------")
         for move in allBlackMoves:
             gs.makeMove(move)
-            # print("BLACK OF DEPTH: ", depth, " TRIES A MOVE: ", gs.board[move.targetSQ[0]][move.targetSQ[1]].identity,
-            #       move.startSQ, "--->", move.targetSQ)
+            #print("BLACK OF DEPTH: ", depth, " TRIES A MOVE: ", gs.board[move.targetSQ[0]][move.targetSQ[1]].identity, move.startSQ, "--->", move.targetSQ)
             score = findMinMaxMove(gs, depth - 1, alpha, beta, True, bestMoves)[0]
-            # print("WHITES RESPONSE FOR THIS MOVE HAS SCORE: ", score)
-            # print()
-
-            if score <= minScore:
-                if depth == DEPTH:
-                    if minScore == score:
-                        bestMoves.append(move)
-                    else:
-                        bestMoves = [move]
-                minScore = score
-
-            beta = min(beta, score)
+            #print("WHITES RESPONSE FOR THIS MOVE HAS SCORE: ", score)
+            if depth == DEPTH and score <= minScore:
+                if minScore == score:
+                    bestMoves.append(move)
+                else:
+                    bestMoves = [move]
+            minScore = min(minScore, score)
+            beta = min(beta, minScore)
             gs.undoMove()
-
             if beta <= alpha:
+                #print("BLACK: BREAKING CUZ OF AB PRUNING IN BLACK")
                 break
-        # print("-------------------------------BLACK LOOP ENDS HERE----------------------------------------")
+        #print("-------------------------------BLACK LOOP ENDS HERE----------------------------------------")
         # if bestMoves:
-        #     print("BLACK: ", "BESTT MOVE FOR THIS LOOP ITERATION: ", bestMoves[0].startSQ, "--->",
-        #           bestMoves[0].targetSQ, "SCORE: ", minScore)
+            #print("BLACK: ", "BESTT MOVE FOR THIS LOOP ITERATION: ", bestMoves[0].startSQ, "--->", bestMoves[0].targetSQ, "SCORE: ", minScore)
 
         return minScore, bestMoves
